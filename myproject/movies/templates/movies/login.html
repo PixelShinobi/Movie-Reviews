@@ -1,0 +1,41 @@
+{% extends "HTMLs/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Login - MovieReviews{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header bg-info text-white">
+                        <h2 class="mb-0">Login</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-4">Login to access the Movie Database</p>
+
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                Invalid username or password. Please try again.
+                            </div>
+                        {% endif %}
+
+                        <form method="post">
+                            {% csrf_token %}
+                            {{ form|crispy }}
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-info">Login</button>
+                            </div>
+                        </form>
+                        <hr class="my-4">
+                        <p class="text-center mb-0">
+                            Don't have an account?
+                            <a href="{% url 'movies:register' %}">Register here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

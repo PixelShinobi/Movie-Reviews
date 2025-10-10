@@ -1,0 +1,20 @@
+{% extends "HTMLs/base.html" %}
+
+{% block title %}Delete Movie - MovieReviews{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>Delete Movie</h2>
+
+        <h5>{{ movie.name }}</h5>
+        <p>{{ movie.actor }}</p>
+        <p>{{ movie.description }}</p>
+        <p><strong>Duration:</strong> {{ movie.duration }} min | <strong>Mode:</strong> {{ movie.delivery_mode }}</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <a href="{% url 'movies:movie_list' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,26 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand text-danger fw-bold" href="{% url 'my_templates:inherited_form' %}">MovieReviews</a>
+        <div class="d-flex gap-3">
+            <a class="nav-link text-white" href="{% url 'movies:orm_exercise' %}">ORM Exercise</a>
+
+            {% if user.is_authenticated %}
+                <a class="nav-link text-white" href="{% url 'movies:movie_list' %}">Movie Database</a>
+                
+
+
+                <form method="post" action="{% url 'movies:logout' %}" style="display: inline; margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link text-white btn btn-link" style="border: none; padding: 0; text-decoration: none;">
+                        Logout ({{ user.username }})
+                    </button>                
+                </form>
+
+                
+            {% else %}
+                <a class="nav-link text-white" href="{% url 'movies:login' %}">Login</a>
+                <a class="nav-link text-white" href="{% url 'movies:register' %}">Register</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>

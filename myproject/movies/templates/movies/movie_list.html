@@ -1,0 +1,85 @@
+{% extends "HTMLs/base.html" %}
+
+{% block title %}Movie List - MovieReviews{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between mb-4">
+            <h1>All Movies</h1>
+            <div>
+                {# View Mode Toggle #}
+                <div class="btn-group me-3" role="group">
+                    <a href="?view=grid{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}" class="btn btn-sm btn-outline-primary {% if view_mode == 'grid' %}active{% endif %}">Grid View</a>
+                    <a href="?view=list{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}" class="btn btn-sm btn-outline-primary {% if view_mode == 'list' %}active{% endif %}">List View</a>
+                </div>
+
+                {% if user.is_staff %}
+                    <a href="{% url 'movies:add_movie' %}" class="btn btn-primary">Add New Movie</a>
+                {% endif %}
+            </div>
+        </div>
+
+
+        
+        {# Display different messages based on user role #}
+        {% if user.is_staff %}
+            <div class="alert alert-info">
+                <strong>Admin View:</strong> You have full access to add, edit, and delete movies.
+            </div>
+        {% else %}
+            <div class="alert alert-warning">
+                <strong>Regular User View:</strong> You can view movies but cannot modify them.
+            </div>
+        {% endif %}
+
+
+
+        <div class="row">
+            {% for movie in page_obj %}
+                <div class="{% if view_mode == 'list' %}col-12{% else %}col-md-6{% endif %} mb-4">
+                    <div class="card">
+                        {% if movie.profile.poster_image %}
+                            <img src="{{ movie.profile.poster_image.url }}" class="card-img-top" alt="{{ movie.name }}" style="height: 300px; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5>
+                                {{ movie.name }}
+                                {% if movie.profile.is_featured %}<span class="badge bg-warning">Featured</span>{% endif %}
+                                {% if movie.profile.is_trending %}<span class="badge bg-danger">Trending</span>{% endif %}
+                            </h5>
+                            <p class="text-muted">{{ movie.actor }}</p>
+                            <p>{{ movie.description }}</p>
+                            <p><strong>Duration:</strong> {{ movie.duration }} min | <strong>Mode:</strong> {{ movie.delivery_mode }}</p>
+                        </div>
+                        {% if user.is_staff %}
+                            <div class="card-footer">
+                                <a href="{% url 'movies:update_movie' movie.pk %}" class="btn btn-sm btn-primary">Edit</a>
+                                <a href="{% url 'movies:delete_movie' movie.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+
+        {# Pagination Controls #}
+        <div class="pagination mt-4">
+            <span class="text-muted">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            <div class="btn-group ms-3" role="group">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1" class="btn btn-outline-secondary btn-sm">First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline-secondary btn-sm">Previous</a>
+                {% endif %}
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline-secondary btn-sm">Next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-outline-secondary btn-sm">Last</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

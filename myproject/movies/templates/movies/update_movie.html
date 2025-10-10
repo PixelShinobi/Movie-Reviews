@@ -1,0 +1,29 @@
+{% extends "HTMLs/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Update Movie - MovieReviews{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-warning text-dark">
+                        <h2 class="mb-0">Update Movie</h2>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{ form|crispy }}
+
+                            <div class="d-flex justify-content-end mt-4">
+                                <a href="{% url 'movies:movie_list' %}" class="btn btn-secondary me-2">Cancel</a>
+                                <button type="submit" class="btn btn-warning">Update Movie</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
