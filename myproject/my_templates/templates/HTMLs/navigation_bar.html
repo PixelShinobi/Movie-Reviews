@@ -2,8 +2,6 @@
     <div class="container-fluid">
         <a class="navbar-brand text-danger fw-bold" href="{% url 'my_templates:inherited_form' %}">MovieReviews</a>
         <div class="d-flex gap-3">
-            <a class="nav-link text-white" href="{% url 'movies:orm_exercise' %}">ORM Exercise</a>
-
             {% if user.is_authenticated %}
                 <a class="nav-link text-white" href="{% url 'movies:movie_list' %}">Movie Database</a>
                 

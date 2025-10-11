@@ -52,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'movies.middleware.SessionExpirationMiddleware',  # Custom middleware for session warnings
 ]
 
 ROOT_URLCONF = 'myproject.urls'
@@ -135,3 +136,16 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 LOGIN_URL = 'movies:login'
 LOGIN_REDIRECT_URL = 'movies:movie_list'
 LOGOUT_REDIRECT_URL = 'movies:login'
+
+# Message Settings - Enable DEBUG level messages
+from django.contrib.messages import constants as message_constants
+MESSAGE_LEVEL = message_constants.DEBUG
+
+# Map Django message tags to Bootstrap alert classes
+MESSAGE_TAGS = {
+    message_constants.DEBUG: 'secondary',
+    message_constants.INFO: 'info',
+    message_constants.SUCCESS: 'success',
+    message_constants.WARNING: 'warning',
+    message_constants.ERROR: 'danger',
+}
