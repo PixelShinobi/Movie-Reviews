@@ -4,6 +4,7 @@ from django.urls import reverse, reverse_lazy
 from django.db import transaction
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
@@ -11,10 +12,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.utils import timezone
+from rest_framework import generics, mixins, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework.authtoken.models import Token
 from .models import Movie, MovieProfile
 from .forms import AddMovieForm, UpdateMovieForm
 from .decorators import token_required
 from .auth_utils import create_token
+from .serializers import MovieSerializer, UserSerializer
+from .permissions import IsStaffOrReadOnly
 
 
 # Movie List View - Home page for forms
@@ -127,7 +135,7 @@ class CustomLoginView(DjangoLoginView):
 
         # Create and save token
         token = create_token(self.request.user.id)
-        self.request.session['auth_token'] = token                           # save token in session
+        self.request.session['auth_token'] = token                           # save token in session, record time created
         self.request.session['token_created'] = timezone.now().isoformat()
         response.set_cookie('auth_token', token, max_age=60*60)              # also save token in cookie for 1 hour
 
@@ -140,10 +148,104 @@ class RegisterView(CreateView):
     template_name = 'movies/register.html'
     success_url = reverse_lazy('movies:login')
 
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.info(self.request, "Registration successful! Please login to continue")
-        return response
+
+
+
+
+
+
+
+# ====================================
+# REST API Views
+# ====================================
+
+# Using Concrete View Class, for list all movies and create new movie
+class MovieListCreateAPIView(generics.ListCreateAPIView):
+    """
+    GET: List all movies
+    POST: Create new movie
+    Uses: Concrete View Class (ListCreateAPIView)
+    Permission: IsAuthenticated (from application-level default)
+    """
+    queryset = Movie.objects.all().order_by('-release_date')
+    serializer_class = MovieSerializer
+    # Permission: Uses default IsAuthenticated from settings
+
+
+# Using GenericAPIView + Mixins, for retrieve, update, delete single movie
+class MovieRetrieveUpdateDestroyAPIView(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    generics.GenericAPIView
+):
+    """
+    GET: Retrieve single movie
+    PUT: Update movie
+    DELETE: Delete movie
+    Uses: GenericAPIView + RetrieveModelMixin + UpdateModelMixin + DestroyModelMixin
+    Permission: IsStaffOrReadOnly (custom permission, overrides default)
+    """
+    queryset = Movie.objects.all()
+    serializer_class = MovieSerializer
+    permission_classes = [IsStaffOrReadOnly]  # View-specific permission (overrides default one that's in settings)
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
+
+
+
+
+
+
+# API Authentication Views
+
+class APIRegisterView(APIView):
+    """
+    POST: Register a new user and return auth token
+    Permission: AllowAny (anyone can register)
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            # Create token for the new user
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({
+                'token': token.key,
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email
+                }
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class APILogoutView(APIView):
+    """
+    POST: Logout user and delete auth token
+    Permission: IsAuthenticated (must be logged in to logout)
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Delete user's token
+        request.user.auth_token.delete()
+        return Response({'message': 'Successfully logged out'}, status=status.HTTP_200_OK)
+
+
+
 
 
 # Testing Links:
@@ -153,3 +255,61 @@ class RegisterView(CreateView):
 # Movie Database: http://127.0.0.1:8000/movies/movie-database/
 # Add Movie: http://127.0.0.1:8000/movies/movie-database/add/
 # Admin: http://127.0.0.1:8000/admin/
+
+
+
+
+
+
+
+
+
+# 1. REGISTER - Get your token
+# POST http://127.0.0.1:8000/movies/api/auth/register/
+# Body: {"username": "testuser", "password": "test123", "password2": "test123"}
+# Response: {"token": "abc123...", "user": {...}}  ← SAVE THIS TOKEN!
+
+# 2. LOGIN (alternative)
+# POST http://127.0.0.1:8000/movies/api/auth/login/
+# Body: {"username": "testuser", "password": "test123"}
+# Response: {"token": "abc123..."}
+
+# 3. GET ALL MOVIES
+# GET http://127.0.0.1:8000/movies/api/movies/
+# Headers: Authorization: Token abc123...
+
+# 4. CREATE MOVIE
+# POST http://127.0.0.1:8000/movies/api/movies/
+# Headers: Authorization: Token abc123...
+# Body: {"name": "Inception", "description": "...", "actor": "Leonardo DiCaprio",
+#        "duration": 148, "delivery_mode": "THEATER", "keywords": "Sci-Fi",
+#        "release_date": "2010-07-16"}
+
+# 5. GET SINGLE MOVIE
+# GET http://127.0.0.1:8000/movies/api/movies/1/
+# Headers: Authorization: Token abc123...
+
+# 6. UPDATE MOVIE (staff only)
+# PUT http://127.0.0.1:8000/movies/api/movies/1/
+# Headers: Authorization: Token abc123...
+# Body: Same as CREATE
+
+# 7. DELETE MOVIE (staff only)
+# DELETE http://127.0.0.1:8000/movies/api/movies/1/
+# Headers: Authorization: Token abc123...
+
+# 8. LOGOUT
+# POST http://127.0.0.1:8000/movies/api/auth/logout/
+# Headers: Authorization: Token abc123...
+
+# SESSION AUTH: Login via browser, then use Postman with cookies (no Token header needed)
+
+# PERMISSIONS:
+# - Application-level: IsAuthenticated (must login for all APIs)
+# - MovieListCreateAPIView: IsAuthenticated
+# - MovieRetrieveUpdateDestroyAPIView: IsStaffOrReadOnly (read=anyone, write=staff only)
+# - Register/Logout: AllowAny/IsAuthenticated
+
+# VIEW TYPES:
+# - MovieListCreateAPIView: Concrete View Class (ListCreateAPIView)
+# - MovieRetrieveUpdateDestroyAPIView: GenericAPIView + Mixins

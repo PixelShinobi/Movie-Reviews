@@ -16,7 +16,7 @@ def validate_token(token):
 
     try:
         signer = TimestampSigner()
-        signer.unsign(token, max_age=TOKEN_MAX_AGE)
+        signer.unsign(token, max_age=TOKEN_MAX_AGE) 
         return True
-    except (SignatureExpired, BadSignature):
+    except (SignatureExpired, BadSignature): #return false if token has expired or is invalid
         return False

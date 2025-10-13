@@ -19,7 +19,7 @@ def token_required(view_func):
         if not token or not validate_token(token):
             messages.error(request, "Session expired. Please login again")
             logout(request)
-            request.session.flush()
+            request.session.flush()  # Clear session data
             return redirect('my_templates:inherited_form')
 
         return view_func(request, *args, **kwargs)

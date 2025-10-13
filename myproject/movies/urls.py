@@ -1,5 +1,6 @@
 from django.urls import path
 from django.contrib.auth.views import LogoutView
+from rest_framework.authtoken.views import obtain_auth_token
 from . import views
 
 app_name = 'movies'
@@ -17,6 +18,15 @@ urlpatterns = [
     path('movie-database/add/', views.MovieCreateView.as_view(), name='add_movie'),
     path('movie-database/update/<int:pk>/', views.MovieUpdateView.as_view(), name='update_movie'),
     path('movie-database/delete/<int:pk>/', views.MovieDeleteView.as_view(), name='delete_movie'),
+
+    # REST API endpoints - Movie operations
+    path('api/movies/', views.MovieListCreateAPIView.as_view(), name='api_movie_list'),
+    path('api/movies/<int:pk>/', views.MovieRetrieveUpdateDestroyAPIView.as_view(), name='api_movie_detail'),
+
+    # REST API endpoints - Authentication
+    path('api/auth/register/', views.APIRegisterView.as_view(), name='api_register'),
+    path('api/auth/login/', obtain_auth_token, name='api_login'),
+    path('api/auth/logout/', views.APILogoutView.as_view(), name='api_logout'),
 ]
 
 
