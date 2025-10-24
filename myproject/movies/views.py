@@ -154,22 +154,17 @@ class RegisterView(CreateView):
 
 
 
-
-# ====================================
-# REST API Views
-# ====================================
-
 # Using Concrete View Class, for list all movies and create new movie
 class MovieListCreateAPIView(generics.ListCreateAPIView):
-    """
-    GET: List all movies
-    POST: Create new movie
-    Uses: Concrete View Class (ListCreateAPIView)
-    Permission: IsAuthenticated (from application-level default)
-    """
+
     queryset = Movie.objects.all().order_by('-release_date')
     serializer_class = MovieSerializer
-    # Permission: Uses default IsAuthenticated from settings
+
+    def get_permissions(self):
+        # GET: Anyone can list movies, POST: Only admins can create
+        if self.request.method == 'POST':
+            return [IsAdminUser()]
+        return [AllowAny()]
 
 
 # Using GenericAPIView + Mixins, for retrieve, update, delete single movie
@@ -179,13 +174,7 @@ class MovieRetrieveUpdateDestroyAPIView(
     mixins.DestroyModelMixin,
     generics.GenericAPIView
 ):
-    """
-    GET: Retrieve single movie
-    PUT: Update movie
-    DELETE: Delete movie
-    Uses: GenericAPIView + RetrieveModelMixin + UpdateModelMixin + DestroyModelMixin
-    Permission: IsStaffOrReadOnly (custom permission, overrides default)
-    """
+
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
     permission_classes = [IsStaffOrReadOnly]  # View-specific permission (overrides default one that's in settings)
@@ -209,14 +198,15 @@ class MovieRetrieveUpdateDestroyAPIView(
 # API Authentication Views
 
 class APIRegisterView(APIView):
-    """
-    POST: Register a new user and return auth token
-    Permission: AllowAny (anyone can register)
-    """
-    permission_classes = [AllowAny]
+
+
+    permission_classes = [AllowAny] # view permission
 
     def post(self, request):
+
+
         serializer = UserSerializer(data=request.data)
+
         if serializer.is_valid():
             user = serializer.save()
             # Create token for the new user
@@ -233,10 +223,7 @@ class APIRegisterView(APIView):
 
 
 class APILogoutView(APIView):
-    """
-    POST: Logout user and delete auth token
-    Permission: IsAuthenticated (must be logged in to logout)
-    """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -264,52 +251,61 @@ class APILogoutView(APIView):
 
 
 
-# 1. REGISTER - Get your token
+# 1. REGISTER - Get token
 # POST http://127.0.0.1:8000/movies/api/auth/register/
-# Body: {"username": "testuser", "password": "test123", "password2": "test123"}
-# Response: {"token": "abc123...", "user": {...}}  ← SAVE THIS TOKEN!
+# Body: {"username": "testuser4", "password": "test123", "password2": "test123"}
 
-# 2. LOGIN (alternative)
+
+
+
+# 2. LOGIN 
 # POST http://127.0.0.1:8000/movies/api/auth/login/
 # Body: {"username": "testuser", "password": "test123"}
-# Response: {"token": "abc123..."}
+# Token b8aa8bcdc69f1bea2ee6e859d1148f405458f542
+
+
 
 # 3. GET ALL MOVIES
 # GET http://127.0.0.1:8000/movies/api/movies/
-# Headers: Authorization: Token abc123...
+# Headers: Authorization: Token (token from login)
 
-# 4. CREATE MOVIE
+
+
+# 4. CREATE MOVIE     admin only, need admin token
 # POST http://127.0.0.1:8000/movies/api/movies/
-# Headers: Authorization: Token abc123...
-# Body: {"name": "Inception", "description": "...", "actor": "Leonardo DiCaprio",
-#        "duration": 148, "delivery_mode": "THEATER", "keywords": "Sci-Fi",
-#        "release_date": "2010-07-16"}
+# Headers: Authorization: Token (token from login)
+# Body: {"name": "Spider-Man", "description": "Peter Parker becomes Spider-Man", "actor": "Tobey Maguire",
+#        "duration": 121, "delivery_mode": "THEATER", "keywords": "Action, Superhero",
+#        "release_date": "2002-05-03"}
+
+
 
 # 5. GET SINGLE MOVIE
 # GET http://127.0.0.1:8000/movies/api/movies/1/
-# Headers: Authorization: Token abc123...
+# Headers: Authorization: Token abc123... 
 
-# 6. UPDATE MOVIE (staff only)
-# PUT http://127.0.0.1:8000/movies/api/movies/1/
-# Headers: Authorization: Token abc123...
-# Body: Same as CREATE
+
+
+# 6. UPDATE MOVIE (Admin/Staff only)
+# login as admin: POST http://127.0.0.1:8000/movies/api/auth/login/
+# Body: {"username": "admin", "password": "admin123"}
+# ADMIN TOKEN 
+# Token bb0aa4a2119dd196bf2fd2483fba6c6c083c5c4b
+#
+
+# PUT http://127.0.0.1:8000/movies/api/movies/21/
+# Headers: Authorization: Token (admin token)
+# Body: {"name": "Spider-Man Updated", "description": "Updated description", "actor": "Tobey Maguire",
+#        "duration": 121, "delivery_mode": "THEATER", "keywords": "Action",
+#        "release_date": "2002-05-03"}
+
+
 
 # 7. DELETE MOVIE (staff only)
-# DELETE http://127.0.0.1:8000/movies/api/movies/1/
+# DELETE http://127.0.0.1:8000/movies/api/movies/21/
 # Headers: Authorization: Token abc123...
 
 # 8. LOGOUT
 # POST http://127.0.0.1:8000/movies/api/auth/logout/
 # Headers: Authorization: Token abc123...
 
-# SESSION AUTH: Login via browser, then use Postman with cookies (no Token header needed)
-
-# PERMISSIONS:
-# - Application-level: IsAuthenticated (must login for all APIs)
-# - MovieListCreateAPIView: IsAuthenticated
-# - MovieRetrieveUpdateDestroyAPIView: IsStaffOrReadOnly (read=anyone, write=staff only)
-# - Register/Logout: AllowAny/IsAuthenticated
-
-# VIEW TYPES:
-# - MovieListCreateAPIView: Concrete View Class (ListCreateAPIView)
-# - MovieRetrieveUpdateDestroyAPIView: GenericAPIView + Mixins
