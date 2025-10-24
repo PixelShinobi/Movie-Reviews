@@ -4,13 +4,106 @@
 
 {% block content %}
     <div class="container mt-4">
-        <div class="d-flex justify-content-between mb-4">
-            <h1>All Movies</h1>
+        <h1 class="mb-3">All Movies</h1>
+
+        {# Search and Filter Section #}
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    {# Search Bar #}
+                    <div class="col-md-12">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="search" placeholder="Search movies by name, actor, genre, or description..." value="{{ search_query }}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+
+                    {# Filter Controls #}
+                    <div class="col-md-3">
+                        <label class="form-label small">Delivery Mode</label>
+                        <select class="form-select form-select-sm" name="delivery_mode">
+                            <option value="">All Modes</option>
+                            <option value="THEATER" {% if delivery_mode == 'THEATER' %}selected{% endif %}>Theater</option>
+                            <option value="STREAMING" {% if delivery_mode == 'STREAMING' %}selected{% endif %}>Streaming</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label small">Min Rating</label>
+                        <select class="form-select form-select-sm" name="min_rating">
+                            <option value="">Any Rating</option>
+                            <option value="4" {% if min_rating == '4' %}selected{% endif %}>4+ Stars</option>
+                            <option value="3" {% if min_rating == '3' %}selected{% endif %}>3+ Stars</option>
+                            <option value="2" {% if min_rating == '2' %}selected{% endif %}>2+ Stars</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label small">Year From</label>
+                        <input type="number" class="form-control form-control-sm" name="year_from" placeholder="e.g., 2000" value="{{ year_from }}" min="1900" max="2025">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label small">Year To</label>
+                        <input type="number" class="form-control form-control-sm" name="year_to" placeholder="e.g., 2024" value="{{ year_to }}" min="1900" max="2025">
+                    </div>
+
+                    {# Hidden fields to preserve sort and view mode #}
+                    <input type="hidden" name="sort" value="{{ current_sort }}">
+                    <input type="hidden" name="view" value="{{ view_mode }}">
+
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-sm btn-primary">Apply Filters</button>
+                        <a href="?sort={{ current_sort }}&view={{ view_mode }}" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# Results and Controls Bar #}
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
+                <span class="text-muted">Showing {{ total_results }} result{{ total_results|pluralize }}</span>
+                {% if search_query %}
+                    <span class="badge bg-info">Search: "{{ search_query }}"</span>
+                {% endif %}
+                {% if delivery_mode %}
+                    <span class="badge bg-secondary">{{ delivery_mode }}</span>
+                {% endif %}
+                {% if min_rating %}
+                    <span class="badge bg-warning text-dark">{{ min_rating }}+ Stars</span>
+                {% endif %}
+            </div>
+            <div class="d-flex align-items-center">
+                {# Sorting Dropdown #}
+                <div class="dropdown me-3">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Sort By:
+                        {% if current_sort == 'best_rated' %}Best Rated
+                        {% elif current_sort == 'worst_rated' %}Worst Rated
+                        {% elif current_sort == 'most_reviewed' %}Most Reviewed
+                        {% elif current_sort == 'least_reviewed' %}Least Reviewed
+                        {% elif current_sort == 'oldest' %}Oldest
+                        {% else %}Newest{% endif %}
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                        <li><a class="dropdown-item {% if current_sort == 'newest' %}active{% endif %}" href="?sort=newest&view={{ view_mode }}&search={{ search_query }}&delivery_mode={{ delivery_mode }}&min_rating={{ min_rating }}&year_from={{ year_from }}&year_to={{ year_to }}">Newest</a></li>
+                        <li><a class="dropdown-item {% if current_sort == 'oldest' %}active{% endif %}" href="?sort=oldest&view={{ view_mode }}&search={{ search_query }}&delivery_mode={{ delivery_mode }}&min_rating={{ min_rating }}&year_from={{ year_from }}&year_to={{ year_to }}">Oldest</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item {% if current_sort == 'best_rated' %}active{% endif %}" href="?sort=best_rated&view={{ view_mode }}&search={{ search_query }}&delivery_mode={{ delivery_mode }}&min_rating={{ min_rating }}&year_from={{ year_from }}&year_to={{ year_to }}">Best Rated</a></li>
+                        <li><a class="dropdown-item {% if current_sort == 'worst_rated' %}active{% endif %}" href="?sort=worst_rated&view={{ view_mode }}&search={{ search_query }}&delivery_mode={{ delivery_mode }}&min_rating={{ min_rating }}&year_from={{ year_from }}&year_to={{ year_to }}">Worst Rated</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item {% if current_sort == 'most_reviewed' %}active{% endif %}" href="?sort=most_reviewed&view={{ view_mode }}&search={{ search_query }}&delivery_mode={{ delivery_mode }}&min_rating={{ min_rating }}&year_from={{ year_from }}&year_to={{ year_to }}">Most Reviewed</a></li>
+                        <li><a class="dropdown-item {% if current_sort == 'least_reviewed' %}active{% endif %}" href="?sort=least_reviewed&view={{ view_mode }}&search={{ search_query }}&delivery_mode={{ delivery_mode }}&min_rating={{ min_rating }}&year_from={{ year_from }}&year_to={{ year_to }}">Least Reviewed</a></li>
+                    </ul>
+                </div>
+
                 {# View Mode Toggle #}
                 <div class="btn-group me-3" role="group">
-                    <a href="?view=grid{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}" class="btn btn-sm btn-outline-primary {% if view_mode == 'grid' %}active{% endif %}">Grid View</a>
-                    <a href="?view=list{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}" class="btn btn-sm btn-outline-primary {% if view_mode == 'list' %}active{% endif %}">List View</a>
+                    <a href="?view=grid&sort={{ current_sort }}&search={{ search_query }}&delivery_mode={{ delivery_mode }}&min_rating={{ min_rating }}&year_from={{ year_from }}&year_to={{ year_to }}" class="btn btn-sm btn-outline-primary {% if view_mode == 'grid' %}active{% endif %}">Grid View</a>
+                    <a href="?view=list&sort={{ current_sort }}&search={{ search_query }}&delivery_mode={{ delivery_mode }}&min_rating={{ min_rating }}&year_from={{ year_from }}&year_to={{ year_to }}" class="btn btn-sm btn-outline-primary {% if view_mode == 'list' %}active{% endif %}">List View</a>
                 </div>
 
                 {% if user.is_staff %}
@@ -48,8 +141,38 @@
                                 {% if movie.profile.is_trending %}<span class="badge bg-danger">Trending</span>{% endif %}
                             </h5>
                             <p class="text-muted">{{ movie.actor }}</p>
-                            <p>{{ movie.description }}</p>
+                            <p>{{ movie.description|truncatewords:30 }}</p>
                             <p><strong>Duration:</strong> {{ movie.duration }} min | <strong>Mode:</strong> {{ movie.delivery_mode }}</p>
+
+                            {# Rating and Review Info #}
+                            <div class="mb-2">
+                                {% if movie.avg_rating %}
+                                    <span class="text-warning fw-bold">
+                                        {% for i in "12345" %}
+                                            {% if i|length <= movie.avg_rating %}★{% else %}☆{% endif %}
+                                        {% endfor %}
+                                        {{ movie.avg_rating|floatformat:1 }}/5
+                                    </span>
+                                    <span class="text-muted small">({{ movie.review_count }} review{{ movie.review_count|pluralize }})</span>
+                                {% else %}
+                                    <span class="text-muted small">No reviews yet</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'movies:movie_detail' movie.pk %}" class="btn btn-sm btn-outline-primary flex-grow-1">View Details & Reviews</a>
+                                {% if user.is_authenticated %}
+                                    {% if movie.pk in watchlist_movie_ids %}
+                                        <a href="{% url 'movies:toggle_watchlist' movie.pk %}?next={{ request.path }}?{{ request.GET.urlencode }}" class="btn btn-sm btn-warning" title="Remove from Watchlist">
+                                            ♥
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'movies:toggle_watchlist' movie.pk %}?next={{ request.path }}?{{ request.GET.urlencode }}" class="btn btn-sm btn-outline-secondary" title="Add to Watchlist">
+                                            ♡
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
                         </div>
                         {% if user.is_staff %}
                             <div class="card-footer">
@@ -71,13 +194,13 @@
 
             <div class="btn-group ms-3" role="group">
                 {% if page_obj.has_previous %}
-                    <a href="?page=1" class="btn btn-outline-secondary btn-sm">First</a>
-                    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline-secondary btn-sm">Previous</a>
+                    <a href="?page=1&sort={{ current_sort }}&view={{ view_mode }}&search={{ search_query }}&delivery_mode={{ delivery_mode }}&min_rating={{ min_rating }}&year_from={{ year_from }}&year_to={{ year_to }}" class="btn btn-outline-secondary btn-sm">First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}&sort={{ current_sort }}&view={{ view_mode }}&search={{ search_query }}&delivery_mode={{ delivery_mode }}&min_rating={{ min_rating }}&year_from={{ year_from }}&year_to={{ year_to }}" class="btn btn-outline-secondary btn-sm">Previous</a>
                 {% endif %}
 
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline-secondary btn-sm">Next</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-outline-secondary btn-sm">Last</a>
+                    <a href="?page={{ page_obj.next_page_number }}&sort={{ current_sort }}&view={{ view_mode }}&search={{ search_query }}&delivery_mode={{ delivery_mode }}&min_rating={{ min_rating }}&year_from={{ year_from }}&year_to={{ year_to }}" class="btn btn-outline-secondary btn-sm">Next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}&sort={{ current_sort }}&view={{ view_mode }}&search={{ search_query }}&delivery_mode={{ delivery_mode }}&min_rating={{ min_rating }}&year_from={{ year_from }}&year_to={{ year_to }}" class="btn btn-outline-secondary btn-sm">Last</a>
                 {% endif %}
             </div>
         </div>

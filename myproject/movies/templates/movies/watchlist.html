@@ -1,0 +1,63 @@
+{% extends "HTMLs/base.html" %}
+
+{% block title %}My Watchlist - MovieReviews{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h1 class="mb-4">My Watchlist</h1>
+
+        {% if total_count > 0 %}
+            <p class="text-muted">You have {{ total_count }} movie{{ total_count|pluralize }} in your watchlist.</p>
+
+            <div class="row">
+                {% for movie in watchlist_movies %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            {% if movie.profile.poster_image %}
+                                <img src="{{ movie.profile.poster_image.url }}" class="card-img-top" alt="{{ movie.name }}" style="height: 300px; object-fit: cover;">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5>
+                                    {{ movie.name }}
+                                    {% if movie.profile.is_featured %}<span class="badge bg-warning">Featured</span>{% endif %}
+                                    {% if movie.profile.is_trending %}<span class="badge bg-danger">Trending</span>{% endif %}
+                                </h5>
+                                <p class="text-muted">{{ movie.actor }}</p>
+                                <p>{{ movie.description|truncatewords:30 }}</p>
+                                <p><strong>Duration:</strong> {{ movie.duration }} min | <strong>Mode:</strong> {{ movie.delivery_mode }}</p>
+
+                                {# Rating and Review Info #}
+                                <div class="mb-2">
+                                    {% if movie.avg_rating %}
+                                        <span class="text-warning fw-bold">
+                                            {% for i in "12345" %}
+                                                {% if i|length <= movie.avg_rating %}★{% else %}☆{% endif %}
+                                            {% endfor %}
+                                            {{ movie.avg_rating|floatformat:1 }}/5
+                                        </span>
+                                        <span class="text-muted small">({{ movie.review_count }} review{{ movie.review_count|pluralize }})</span>
+                                    {% else %}
+                                        <span class="text-muted small">No reviews yet</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'movies:movie_detail' movie.pk %}" class="btn btn-sm btn-outline-primary flex-grow-1">View Details</a>
+                                    <a href="{% url 'movies:toggle_watchlist' movie.pk %}?next={% url 'movies:watchlist' %}" class="btn btn-sm btn-warning" title="Remove from Watchlist">
+                                        ♥ Remove
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <h4>Your watchlist is empty!</h4>
+                <p>Start adding movies to your watchlist by clicking the ♡ button on any movie.</p>
+                <a href="{% url 'movies:movie_list' %}" class="btn btn-primary">Browse Movies</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

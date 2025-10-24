@@ -19,6 +19,14 @@ urlpatterns = [
     path('movie-database/update/<int:pk>/', views.MovieUpdateView.as_view(), name='update_movie'),
     path('movie-database/delete/<int:pk>/', views.MovieDeleteView.as_view(), name='delete_movie'),
 
+    # Movie Detail and Reviews
+    path('movie-database/<int:pk>/', views.movie_detail, name='movie_detail'),
+    path('reviews/delete/<int:pk>/', views.delete_review, name='delete_review'),
+
+    # Watchlist
+    path('watchlist/', views.watchlist_page, name='watchlist'),
+    path('watchlist/toggle/<int:pk>/', views.toggle_watchlist, name='toggle_watchlist'),
+
     # REST API endpoints - Movie operations
     path('api/movies/', views.MovieListCreateAPIView.as_view(), name='api_movie_list'),
     path('api/movies/<int:pk>/', views.MovieRetrieveUpdateDestroyAPIView.as_view(), name='api_movie_detail'),
@@ -27,6 +35,10 @@ urlpatterns = [
     path('api/auth/register/', views.APIRegisterView.as_view(), name='api_register'),
     path('api/auth/login/', obtain_auth_token, name='api_login'),
     path('api/auth/logout/', views.APILogoutView.as_view(), name='api_logout'),
+
+    # REST API endpoints - Reviews
+    path('api/movies/<int:movie_id>/reviews/', views.ReviewListCreateAPIView.as_view(), name='api_review_list'),
+    path('api/reviews/<int:pk>/', views.ReviewRetrieveUpdateDestroyAPIView.as_view(), name='api_review_detail'),
 ]
 
 

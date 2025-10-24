@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Movie
+from .models import Movie, Review
 from datetime import date
 
 
@@ -72,3 +72,26 @@ class UserSerializer(serializers.ModelSerializer):
         # Create user with hashed password
         user = User.objects.create_user(**validated_data)
         return user
+
+
+# Review Serializer
+class ReviewSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    movie_name = serializers.CharField(source='movie.name', read_only=True)
+
+    class Meta:
+        model = Review
+        fields = ['id', 'user', 'username', 'movie', 'movie_name', 'rating', 'comment', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'username', 'movie_name', 'created_at', 'updated_at']
+
+    def validate_rating(self, value):
+        """Validate rating is between 1 and 5"""
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("Rating must be between 1 and 5")
+        return value
+
+    def validate_comment(self, value):
+        """Validate comment is not empty"""
+        if not value or value.strip() == '':
+            raise serializers.ValidationError("Comment cannot be blank")
+        return value

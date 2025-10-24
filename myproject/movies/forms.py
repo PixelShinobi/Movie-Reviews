@@ -1,5 +1,5 @@
 from django import forms
-from .models import Movie, MovieProfile
+from .models import Movie, MovieProfile, Review
 
 
 # 1. ModelForm - for adding movies (includes MovieProfile fields)
@@ -31,4 +31,19 @@ class UpdateMovieForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
             'release_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+
+# 3. ModelForm - for adding reviews
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']
+        widgets = {
+            'rating': forms.Select(choices=[(i, f'{i} Star{"s" if i > 1 else ""}') for i in range(1, 6)]),
+            'comment': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Share your thoughts about this movie...'}),
+        }
+        labels = {
+            'rating': 'Your Rating',
+            'comment': 'Your Review',
         }

@@ -4,14 +4,13 @@
         <div class="d-flex gap-3">
             {% if user.is_authenticated %}
                 <a class="nav-link text-white" href="{% url 'movies:movie_list' %}">Movie Database</a>
-                
-
+                <a class="nav-link text-white" href="{% url 'movies:watchlist' %}">♥ My Watchlist</a>
 
                 <form method="post" action="{% url 'movies:logout' %}" style="display: inline; margin: 0;">
                     {% csrf_token %}
                     <button type="submit" class="nav-link text-white btn btn-link" style="border: none; padding: 0; text-decoration: none;">
                         Logout ({{ user.username }})
-                    </button>                
+                    </button>
                 </form>
 
                 
