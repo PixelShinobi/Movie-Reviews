@@ -499,66 +499,7 @@ class ReviewRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 
+# User login: user1   user123
 
-
-
-
-
-# 1. REGISTER - Get token
-# POST http://127.0.0.1:8000/movies/api/auth/register/
-# Body: {"username": "testuser4", "password": "test123", "password2": "test123"}
-
-
-
-
-# 2. LOGIN 
-# POST http://127.0.0.1:8000/movies/api/auth/login/
-# Body: {"username": "testuser", "password": "test123"}
-# Token b8aa8bcdc69f1bea2ee6e859d1148f405458f542
-
-
-
-# 3. GET ALL MOVIES
-# GET http://127.0.0.1:8000/movies/api/movies/
-# Headers: Authorization: Token (token from login)
-
-
-
-# 4. CREATE MOVIE     admin only, need admin token
-# POST http://127.0.0.1:8000/movies/api/movies/
-# Headers: Authorization: Token (token from login)
-# Body: {"name": "Spider-Man", "description": "Peter Parker becomes Spider-Man", "actor": "Tobey Maguire",
-#        "duration": 121, "delivery_mode": "THEATER", "keywords": "Action, Superhero",
-#        "release_date": "2002-05-03"}
-
-
-
-# 5. GET SINGLE MOVIE
-# GET http://127.0.0.1:8000/movies/api/movies/1/
-# Headers: Authorization: Token abc123... 
-
-
-
-# 6. UPDATE MOVIE (Admin/Staff only)
-# login as admin: POST http://127.0.0.1:8000/movies/api/auth/login/
-# Body: {"username": "admin", "password": "admin123"}
-# ADMIN TOKEN 
-# Token bb0aa4a2119dd196bf2fd2483fba6c6c083c5c4b
-#
-
-# PUT http://127.0.0.1:8000/movies/api/movies/21/
-# Headers: Authorization: Token (admin token)
-# Body: {"name": "Spider-Man Updated", "description": "Updated description", "actor": "Tobey Maguire",
-#        "duration": 121, "delivery_mode": "THEATER", "keywords": "Action",
-#        "release_date": "2002-05-03"}
-
-
-
-# 7. DELETE MOVIE (staff only)
-# DELETE http://127.0.0.1:8000/movies/api/movies/21/
-# Headers: Authorization: Token abc123...
-
-# 8. LOGOUT
-# POST http://127.0.0.1:8000/movies/api/auth/logout/
-# Headers: Authorization: Token abc123...
+# Admin login: admin   admin123
 
